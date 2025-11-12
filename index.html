@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConnecTrac: A Contractor-Laborer Platform</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* Darker background for a more professional feel */
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #161b22; /* Slightly different dark shade */
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            max-width: 32rem;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid #30363d;
+            position: relative;
+        }
+        .modal-overlay.open .modal-content {
+            transform: scale(1);
+        }
+        .show-password-btn {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        /* Message Box Styles */
+        #messageBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            display: none;
+            text-align: center;
+        }
+
+        /* Chat Styles */
+        .chat-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 50;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end;
+        }
+        .chat-icon {
+            background-color: #f97316;
+            color: white;
+            padding: 1rem;
+            border-radius: 9999px;
+            box-shadow: 0 10px 20px rgba(249, 115, 22, 0.4);
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .chat-icon:hover {
+            transform: scale(1.1);
+        }
+        .chat-window {
+            width: 300px;
+            height: 400px;
+            background-color: #161b22;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            margin-bottom: 1rem;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            border: 1px solid #30363d;
+        }
+        
+        /* Hero Section Styling */
+        .hero-carousel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        .hero-slide.active {
+            opacity: 1;
+        }
+        .floating-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 15vw;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            text-shadow: 0 0 20px rgba(0,0,0,0.5);
+            z-index: 0;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        /* Slow Rotation for Icon */
+        @keyframes spin-slow {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 6s linear infinite;
+        }
+
+        /* Shrinked Navbar */
+        .navbar-shrink {
+            padding-top: 0.3rem !important;
+            padding-bottom: 0.3rem !important;
+            background-color: rgba(13, 17, 23, 0.95) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .navbar-shrink #logoIcon {
+            width: 2rem;
+            height: 2rem;
+        }
+        .navbar-shrink #logoText {
+            font-size: 1.5rem;
+        }
+        
+        /* Text animations */
+        @keyframes textSlide {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-text-slide {
+            display: inline-block;
+            opacity: 0;
+            animation: textSlide 0.8s forwards;
+        }
+        .animate-text-slide.delay-150 { animation-delay: 0.15s; }
+        .animate-text-slide.delay-300 { animation-delay: 0.3s; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            opacity: 0;
+            animation: fadeUp 1s forwards;
+        }
+        .animate-fade-up.delay-500 { animation-delay: 0.5s; }
+        .animate-fade-up.delay-700 { animation-delay: 0.7s; }
+        .testimonial-card.animate-fade-up { animation: fadeUp 1s forwards; }
+
+        /* Background pulse & spin animations */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        @keyframes spin-slow {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .animate-pulse-slow { animation: pulse-slow 10s ease-in-out infinite; }
+        .animate-spin-slow { animation: spin-slow 60s linear infinite; }
+        footer a:hover { color: #ffffff; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-55%, -45%) rotate(2deg); }
+            50% { transform: translate(-45%, -55%) rotate(-2deg); }
+            75% { transform: translate(-52%, -48%) rotate(1deg); }
+        }
+        .number-animation {
+            animation: countUp 2s forwards;
+        }
+
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 400,
+          'GRAD' 0,
+          'opsz' 24
+        }
+        #loadingOverlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.8);
+          display: none;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          flex-direction: column;
+        }
+        .spinner {
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #f97316;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-white antialiased">
+    
+<!-- Homepage Content -->
+    <!-- Navigation Bar -->
+    <header id="mainNavbar" class="bg-gray-900 sticky top-0 z-50 backdrop-blur-md bg-opacity-90 shadow-xl transition-all duration-300">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center transition-all duration-300">
+            
+            <!-- Left Logo + Rotating Icon -->
+            <div class="flex items-center space-x-3">
+                <div id="logoIcon" class="w-10 h-10 flex items-center justify-center bg-orange-500 rounded-full shadow-lg animate-spin transition-all duration-1000">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div id="logoText" class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-300 tracking-wide drop-shadow-lg transition-all duration-300">
+                    ConnecTrac
+                </div>
+            </div>
+            
+            <!-- Right Side Buttons -->
+            <div class="flex items-center space-x-4">
+                <button id="loginBtnNav" class="relative bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-500 text-white font-semibold py-2 px-6 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 before:absolute before:inset-0 before:rounded-full before:bg-white/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity">
+                    Log In
+                </button>
+            </div>
+        </nav>
+    </header>
+
+
+<!-- Hero Section with Animated Background & Top-Aligned Text -->
+<section class="relative h-[90vh] sm:h-[100vh] flex flex-col justify-center items-center pt-10 sm:pt-16 overflow-hidden">
+  <div class="hero-carousel absolute inset-0 z-0">
+    <div class="hero-slide active" style="background-image: url('public/image1.png');"></div>
+    <div class="hero-slide" style="background-image: url('public/image2.png');"></div>
+    <div class="hero-slide" style="background-image: url('public/image3.png');"></div>
+  </div>
+  <div class="absolute inset-0 bg-black/50 z-10"></div>
+  <div class="floating-text absolute text-[4rem] sm:text-[10rem] font-extrabold text-white/10 tracking-widest top-[10%] left-1/2 -translate-x-1/2 pointer-events-none select-none z-10">
+    CONNECT
+  </div>
+  <div class="relative z-20 flex flex-col items-center text-center max-w-4xl mx-auto px-6">
+    <h1 class="hero-title text-3xl sm:text-6xl font-extrabold leading-tight text-white mb-4 drop-shadow-2xl animate-fade-down">
+      <span class="hero-word text-orange-400" style="--delay:0s;">Connect.</span>
+      <span class="hero-word text-blue-400" style="--delay:0.3s;">Build.</span>
+      <span class="hero-word text-green-400" style="--delay:0.6s;">Succeed.</span>
+    </h1>
+    <p class="hero-subtitle text-base sm:text-xl text-gray-200 mb-6 max-w-2xl mx-auto animate-fade-down delay-300">
+      The premier digital marketplace for construction professionals. Find skilled laborers or discover jobs near you.
+    </p>
+    <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-6 animate-fade-down delay-500">
+      <button id="findJobsBtn" class="bg-orange-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-orange-600 hover:shadow-orange-500/40 transition-all transform hover:scale-105">
+        Find Jobs
+      </button>
+      <button id="postJobBtn" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-700 hover:shadow-blue-500/40 transition-all transform hover:scale-105">
+        Post a Job
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- Carousel and Hero Animations CSS -->
+<style>
+.hero-carousel {
+  width: 100%;
+  height: 100%;
+}
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+.hero-slide.active {
+  opacity: 1;
+}
+.hero-title {
+  display: flex;
+  justify-content: center;
+  gap: 0.5em;
+  perspective: 1000px;
+}
+.hero-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(40px) scale(0.8) rotateX(30deg);
+  animation: wordEntrance 1s forwards cubic-bezier(0.19, 1, 0.22, 1),
+             floatPulse 3s ease-in-out infinite;
+  animation-delay: var(--delay), calc(var(--delay) + 1.2s);
+  position: relative;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  cursor: default;
+}
+.hero-word:hover {
+  transform: scale(1.15) rotateX(0deg);
+  text-shadow: 0 0 25px currentColor, 0 0 40px rgba(255, 255, 255, 0.5);
+}
+@keyframes wordEntrance {
+  0% {opacity: 0; transform: translateY(50px) scale(0.8) rotateX(30deg);}
+  60% {opacity: 1; transform: translateY(-6px) scale(1.05) rotateX(0);}
+  100% {opacity: 1; transform: translateY(0) scale(1);}
+}
+.hero-word::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: currentColor;
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: underlineGrow 0.7s forwards ease-out;
+  animation-delay: calc(var(--delay) + 0.7s);
+}
+@keyframes underlineGrow {
+  to { transform: scaleX(1); }
+}
+.floating-text {
+  opacity: 0.1;
+  animation: fadeFloat 6s ease-in-out infinite alternate;
+}
+@keyframes fadeFloat {
+  0% {transform: translate(-50%, 0);}
+  50% {transform: translate(-50%, -10px);}
+  100% {transform: translate(-50%, 10px);}
+}
+@keyframes fadeDown {
+  0% {opacity: 0; transform: translateY(-20px);}
+  100% {opacity: 1; transform: translateY(0);}
+}
+.animate-fade-down {
+  animation: fadeDown 1s ease forwards;
+}
+.animate-fade-down.delay-300 {
+  animation-delay: 0.3s;
+}
+.animate-fade-down.delay-500 {
+  animation-delay: 0.5s;
+}
+</style>
+
+
+<!-- Partner & Trust Logos -->
+<section class="py-20 bg-[#0d1117] relative overflow-hidden">
+    <h1 class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10rem] sm:text-[12rem] font-extrabold text-white/5 select-none pointer-events-none tracking-widest z-0">
+        PARTNERSHIP
+    </h1>
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <h2 class="text-2xl sm:text-3xl font-bold text-center text-gray-400 mb-12">Trusted by Industry Leaders</h2>
+        <div class="overflow-hidden relative px-4">
+            <div class="flex animate-marquee space-x-16 items-center">
+                <div class="flex flex-col items-center space-y-2 bg-[#161b22] rounded-xl p-4 shadow-lg hover:scale-105 transition-transform min-w-[140px]">
+                    <img src="https://placehold.co/120x48/161b22/a0aec0?text=BuildCorp" alt="BuildCorp" class="h-12 object-contain">
+                    <span class="text-gray-300 font-semibold text-lg">BuildCorp</span>
+                </div>
+                <div class="flex flex-col items-center space-y-2 bg-[#161b22] rounded-xl p-4 shadow-lg hover:scale-105 transition-transform min-w-[140px]">
+                    <img src="https://placehold.co/120x48/161b22/a0aec0?text=Pro+Build" alt="Pro Build" class="h-12 object-contain">
+                    <span class="text-gray-300 font-semibold text-lg">Pro Build</span>
+                </div>
+                <div class="flex flex-col items-center space-y-2 bg-[#161b22] rounded-xl p-4 shadow-lg hover:scale-105 transition-transform min-w-[140px]">
+                    <img src="https://placehold.co/120x48/161b22/a0aec0?text=Apex+Contracting" alt="Apex Contracting" class="h-12 object-contain">
+                    <span class="text-gray-300 font-semibold text-lg">Apex Contracting</span>
+                </div>
+                <div class="flex flex-col items-center space-y-2 bg-[#161b22] rounded-xl p-4 shadow-lg hover:scale-105 transition-transform min-w-[140px]">
+                    <img src="https://placehold.co/120x48/161b22/a0aec0?text=Forge+Corp" alt="Forge Corp" class="h-12 object-contain">
+                    <span class="text-gray-300 font-semibold text-lg">Forge Corp</span>
+                </div>
+                <div class="flex flex-col items-center space-y-2 bg-[#161b22] rounded-xl p-4 shadow-lg hover:scale-105 transition-transform min-w-[140px]">
+                    <img src="https://placehold.co/120x48/161b22/a0aec0?text=Urban+Development" alt="Urban Development" class="h-12 object-contain">
+                    <span class="text-gray-300 font-semibold text-lg">Urban Development</span>
+                </div>
+                <div class="flex flex-col items-center space-y-2 bg-[#161b22] rounded-xl p-4 shadow-lg hover:scale-105 transition-transform min-w-[140px]">
+                    <img src="https://placehold.co/120x48/161b22/a0aec0?text=Master+Craft" alt="Master Craft" class="h-12 object-contain">
+                    <span class="text-gray-300 font-semibold text-lg">Master Craft</span>
+                </div>
+
+                <div class="flex flex-col items-center space-y-2 bg-[#161b22] rounded-xl p-4 shadow-lg hover:scale-105 transition-transform min-w-[140px]">
+                    <img src="https://placehold.co/120x48/161b22/a0aec0?text=BuildCorp" alt="BuildCorp" class="h-12 object-contain">
+                    <span class="text-gray-300 font-semibold text-lg">BuildCorp</span>
+                </div>
+                <div class="flex flex-col items-center space-y-2 bg-[#161b22] rounded-xl p-4 shadow-lg hover:scale-105 transition-transform min-w-[140px]">
+                    <img src="https://placehold.co/120x48/161b22/a0aec0?text=Pro+Build" alt="Pro Build" class="h-12 object-contain">
+                    <span class="text-gray-300 font-semibold text-lg">Pro Build</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CSS for marquee -->
+<style>
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 25s linear infinite;
+}
+</style>
+
+<!-- Job Spotlight Section -->
+<section class="py-28 bg-[#1a202c] relative overflow-hidden">
+    <div class="absolute inset-0 z-0 chain-bg pointer-events-none"></div>
+    <h1 class="bg-word absolute top-[15%] left-[5%] text-[15rem] font-extrabold text-white/10 select-none pointer-events-none tracking-widest">
+        JOBS
+    </h1>
+    <h1 class="bg-word absolute top-[45%] left-[55%] text-[12rem] font-extrabold text-white/10 select-none pointer-events-none tracking-widest">
+        CAREERS
+    </h1>
+    <h1 class="bg-word absolute top-[70%] left-[15%] text-[16rem] font-extrabold text-white/10 select-none pointer-events-none tracking-widest">
+        HIRING
+    </h1>
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <h2 class="text-5xl font-extrabold text-center text-white mb-16 tracking-tight drop-shadow-2xl">
+            ✨ Featured Job Spotlights
+        </h2>
+        <div id="jobSpotlights" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <!-- Job cards are dynamically generated -->
+        </div>
+    </div>
+</section>
+
+<!-- Premium Modal with Image and Tabs -->
+<div id="jobModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4">
+    <div class="bg-[#161b22] rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden">
+        <div class="flex justify-between items-center p-6 border-b border-gray-700">
+            <h3 id="modalJobTitle" class="text-2xl font-bold text-white"></h3>
+            <button id="closeJobModal" class="text-white text-3xl font-bold hover:text-red-400 transition">&times;</button>
+        </div>
+        <img id="modalJobImg" class="w-full h-64 object-cover border-b border-gray-700">
+        <div class="flex border-b border-gray-700">
+            <button class="tab-btn flex-1 py-3 text-center font-semibold text-white bg-gray-900/50 hover:bg-gray-900/70 transition" data-tab="view">View Job</button>
+            <button class="tab-btn flex-1 py-3 text-center font-semibold text-white bg-gray-900/50 hover:bg-gray-900/70 transition" data-tab="apply">Apply</button>
+        </div>
+        <div id="viewTab" class="tab-content p-6 text-gray-300">
+            <p id="modalJobDesc"></p>
+        </div>
+        <div id="applyTab" class="tab-content p-6 text-gray-300 hidden">
+            <form id="applyForm" class="flex flex-col gap-4">
+                <input type="text" placeholder="Full Name" required class="p-3 rounded-lg bg-gray-700 text-white focus:outline-none">
+                <input type="email" placeholder="Email Address" required class="p-3 rounded-lg bg-gray-700 text-white focus:outline-none">
+                <input type="tel" placeholder="Phone Number" required class="p-3 rounded-lg bg-gray-700 text-white focus:outline-none">
+                <textarea placeholder="Your Message / Experience" rows="4" class="p-3 rounded-lg bg-gray-700 text-white focus:outline-none"></textarea>
+                <button type="submit" class="bg-orange-500 text-white py-3 rounded-full font-bold hover:bg-orange-600 transition">
+                    Submit Application
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const jobs = [
+    { title: "Construction Project Manager", description: "Manage construction projects, coordinate with teams, and ensure deadlines are met.", salary: "₹50,000/mo", img: "public/project manager.png" },
+    { title: "Skilled Electrician", description: "Looking for experienced electricians for residential and commercial projects.", salary: "₹25,000/mo", img: "public/electrician.png" },
+    { title: "Civil Engineer", description: "Design, supervise, and manage civil construction projects effectively.", salary: "₹45,000/mo", img: "https://placehold.co/400x200/f97316/ffffff?text=Civil+Engineer" },
+];
+
+const container = document.getElementById("jobSpotlights");
+const jobModal = document.getElementById("jobModal");
+const closeJobModalBtn = document.getElementById("closeJobModal");
+const modalJobTitle = document.getElementById("modalJobTitle");
+const modalJobDesc = document.getElementById("modalJobDesc");
+const modalJobImg = document.getElementById("modalJobImg");
+const applyForm = document.getElementById("applyForm");
+const viewTab = document.getElementById("viewTab");
+const applyTab = document.getElementById("applyTab");
+const tabBtns = document.querySelectorAll(".tab-btn");
+
+jobs.forEach(job => {
+    const card = document.createElement("div");
+    card.className = "job-card bg-[#161b22] rounded-2xl shadow-lg hover:shadow-2xl transition-all transform hover:-translate-y-2 hover:scale-105 overflow-hidden border border-[#30363d]";
+    card.innerHTML = `
+        <img src="${job.img}" alt="${job.title}" class="w-full h-48 object-cover">
+        <div class="p-6">
+            <h3 class="text-xl font-bold text-white mb-2">${job.title}</h3>
+            <p class="text-gray-300 mb-4">${job.description}</p>
+            <div class="flex justify-between items-center">
+                <span class="text-orange-400 font-semibold">${job.salary}</span>
+                <div class="flex gap-2">
+                    <button class="view-btn bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition">View</button>
+                    <button class="apply-btn bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition">Apply</button>
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(card);
+    card.querySelector(".view-btn").addEventListener("click", () => {
+        modalJobTitle.textContent = job.title;
+        modalJobDesc.textContent = job.description;
+        modalJobImg.src = job.img;
+        viewTab.classList.remove("hidden");
+        applyTab.classList.add("hidden");
+        jobModal.classList.remove("hidden");
+    });
+
+    card.querySelector(".apply-btn").addEventListener("click", () => {
+        modalJobTitle.textContent = `Apply for ${job.title}`;
+        modalJobDesc.textContent = job.description;
+        modalJobImg.src = job.img;
+        viewTab.classList.add("hidden");
+        applyTab.classList.remove("hidden");
+        jobModal.classList.remove("hidden");
+    });
+});
+
+tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+        if (btn.dataset.tab === "view") {
+            viewTab.classList.remove("hidden");
+            applyTab.classList.add("hidden");
+        } else {
+            viewTab.classList.add("hidden");
+            applyTab.classList.remove("hidden");
+        }
+    });
+});
+
+closeJobModalBtn.addEventListener("click", () => jobModal.classList.add("hidden"));
+
+applyForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    showMessage("Application Submitted!");
+    applyForm.reset();
+    jobModal.classList.add("hidden");
+});
+</script>
+
+<style>
+/* Floating Background Text */
+.bg-word {
+    animation: floatWords 8s ease-in-out infinite alternate;
+    text-shadow: 0 0 30px rgba(255,255,255,0.05);
+}
+@keyframes floatWords {
+    0% { transform: translateY(0) scale(1); opacity: 0.1; }
+    50% { transform: translateY(-25px) scale(1.05); opacity: 0.18; }
+    100% { transform: translateY(0) scale(1); opacity: 0.1; }
+}
+.chain-bg {
+    background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: chainMove 12s linear infinite;
+}
+@keyframes chainMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+}
+</style>
+
+<!-- Success Metrics Section -->
+<section class="relative py-28 bg-[#0d1117] overflow-hidden">
+    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/3 w-[800px] h-[800px] bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-10 blur-3xl pointer-events-none"></div>
+    
+    <h1 class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[12rem] sm:text-[18rem] font-extrabold text-white/5 select-none pointer-events-none tracking-widest z-0">
+        SUCCESS
+    </h1>
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+            
+            <div class="flex flex-col items-center group">
+                <div class="text-6xl sm:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-yellow-300 mb-2 animate-pulse glow">
+                    <span id="metric1">0</span>
+                </div>
+                <p class="text-xl font-semibold text-gray-300">Skilled Laborers in Network</p>
+                <span class="mt-2 text-4xl text-gray-500">👷‍♂️</span>
+            </div>
+
+            <div class="flex flex-col items-center group">
+                <div class="text-6xl sm:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-sky-300 mb-2 animate-pulse glow">
+                    <span id="metric2">0</span>
+                </div>
+                <p class="text-xl font-semibold text-gray-300">Total Earnings Paid Out</p>
+                <span class="mt-2 text-4xl text-gray-500">💰</span>
+            </div>
+
+            <div class="flex flex-col items-center group">
+                <div class="text-6xl sm:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-teal-300 mb-2 animate-pulse glow">
+                    <span id="metric3">0</span>
+                </div>
+                <p class="text-xl font-semibold text-gray-300">Projects Completed Annually</p>
+                <span class="mt-2 text-4xl text-gray-500">🏗️</span>
+            </div>
+
+            <div class="flex flex-col items-center group">
+                <div class="text-6xl sm:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-300 mb-2 animate-pulse glow">
+                    <span id="metric4">0</span>
+                </div>
+                <p class="text-xl font-semibold text-gray-300">User Satisfaction Rating</p>
+                <span class="mt-2 text-4xl text-gray-500">⭐</span>
+            </div>
+
+        </div>
+    </div>
+</section>
+    <!-- Value Proposition Section -->
+    <section class="relative py-28 bg-gradient-to-br from-[#0d1117] via-[#161b22] to-black overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none">
+            <div class="animate-pulse-slow absolute top-20 left-10 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"></div>
+            <div class="animate-pulse-slow absolute bottom-10 right-20 w-96 h-96 bg-orange-400/20 rounded-full blur-3xl"></div>
+            <div class="animate-spin-slow absolute top-1/2 left-1/2 w-[45rem] h-[45rem] -translate-x-1/2 -translate-y-1/2 border border-purple-500/20 rounded-full"></div>
+            <div class="animate-pulse-slow absolute top-1/4 right-1/3 w-80 h-80 bg-gradient-to-tr from-pink-500/20 to-purple-500/10 rounded-full blur-[120px]"></div>
+        </div>
+        <div class="relative max-w-7xl mx-auto px-6 lg:px-8">
+            <h2 class="text-5xl font-extrabold text-center text-white mb-20 tracking-tight drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                🚀 For Contractors & Laborers
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+                <div class="group bg-[#161b22]/70 border border-[#30363d] p-8 rounded-2xl shadow-2xl space-y-5 hover:border-blue-500/70 hover:shadow-[0_0_25px_rgba(59,130,246,0.4)] transition-all duration-500 backdrop-blur-xl transform hover:-translate-y-2 hover:scale-105">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" alt="Find Projects" class="w-20 mx-auto group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                    <h3 class="text-2xl font-bold text-white text-center">Find Your Next Project</h3>
+                    <p class="text-gray-300 text-center leading-relaxed">Browse curated jobs near you, get hired quickly, and build your professional reputation with our transparent rating system.</p>
+                </div>
+                <div class="group bg-[#161b22]/70 border border-[#30363d] p-8 rounded-2xl shadow-2xl space-y-5 hover:border-orange-400/70 hover:shadow-[0_0_25px_rgba(251,146,60,0.4)] transition-all duration-500 backdrop-blur-xl transform hover:-translate-y-2 hover:scale-105">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Hire Talent" class="w-20 mx-auto group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(251,146,60,0.5)]">
+                    <h3 class="text-2xl font-bold text-white text-center">Hire Top Talent</h3>
+                    <p class="text-gray-300 text-center leading-relaxed">Post jobs in minutes and connect with pre-verified workers. Our AI-powered matching ensures you hire the right person, every time.</p>
+                </div>
+                <div class="group bg-[#161b22]/70 border border-[#30363d] p-8 rounded-2xl shadow-2xl space-y-5 hover:border-purple-500/70 hover:shadow-[0_0_25px_rgba(168,85,247,0.4)] transition-all duration-500 backdrop-blur-xl transform hover:-translate-y-2 hover:scale-105">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" alt="Upskill" class="w-20 mx-auto group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                    <h3 class="text-2xl font-bold text-white text-center">Upskill & Earn More</h3>
+                    <p class="text-gray-300 text-center leading-relaxed">Unlock free training programs, skill challenges, and certifications to qualify for higher-paying projects and grow your career.</p>
+                </div>
+                <div class="group bg-[#161b22]/70 border border-[#30363d] p-8 rounded-2xl shadow-2xl space-y-5 hover:border-green-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.4)] transition-all duration-500 backdrop-blur-xl transform hover:-translate-y-2 hover:scale-105">
+                    <img src="https://cdn-icons-png.flaticon.com/512/648/648454.png" alt="Secure Payment" class="w-20 mx-auto group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+                    <h3 class="text-2xl font-bold text-white text-center">Safe & Secure Payments</h3>
+                    <p class="text-gray-300 text-center leading-relaxed">Get guaranteed, on-time payments through our escrow system — ensuring smooth, dispute-free transactions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="relative py-28 bg-gradient-to-br from-[#0d1117] via-[#161b22] to-black overflow-hidden">
+        <div class="absolute inset-0 pointer-events-none">
+            <svg class="absolute w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid-pattern)">
+                    <animateTransform attributeName="transform" type="translate" from="0 0" to="40 40" dur="10s" repeatCount="indefinite" />
+                </rect>
+            </svg>
+            <div class="absolute -top-10 -left-10 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"></div>
+            <div class="absolute top-1/2 left-1/2 w-[35rem] h-[35rem] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-tr from-pink-500/10 to-purple-500/10 rounded-full blur-[120px]"></div>
+        </div>
+        <div class="relative max-w-7xl mx-auto px-6 lg:px-8">
+            <h2 class="text-5xl font-extrabold text-center text-white mb-20 tracking-tight drop-shadow-2xl">
+                ⚡ How It Works
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="group bg-[#161b22]/70 border border-[#30363d] p-10 rounded-2xl shadow-2xl hover:border-orange-400/50 hover:shadow-orange-400/30 transition-all duration-300 backdrop-blur-xl text-center">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center text-4xl font-bold text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                            1
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Create a Profile</h3>
+                    <p class="text-gray-300 leading-relaxed">Sign up in minutes and build your professional profile, whether you're a contractor or a laborer.</p>
+                </div>
+                <div class="group bg-[#161b22]/70 border border-[#30363d] p-10 rounded-2xl shadow-2xl hover:border-blue-500/50 hover:shadow-blue-500/30 transition-all duration-300 backdrop-blur-xl text-center">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-4xl font-bold text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                            2
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Find Your Match</h3>
+                    <p class="text-gray-300 leading-relaxed">Laborers can find jobs by location and skill, while contractors can connect with verified workers nearby.</p>
+                </div>
+                <div class="group bg-[#161b22]/70 border border-[#30363d] p-10 rounded-2xl shadow-2xl hover:border-green-400/50 hover:shadow-green-400/30 transition-all duration-300 backdrop-blur-xl text-center">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-4xl font-bold text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                            3
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-3">Get to Work</h3>
+                    <p class="text-gray-300 leading-relaxed">Communicate, manage projects, and get paid securely, all through our platform.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Feature Showcase Section -->
+    <section class="py-28 bg-[#0d1117]">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div class="space-y-6">
+                    <span class="bg-purple-500 text-white text-sm font-bold px-3 py-1 rounded-full uppercase">Premium Feature</span>
+                    <h2 class="text-5xl font-extrabold text-white leading-tight">
+                        Intelligent Matching, <br>Instant Connections
+                    </h2>
+                    <p class="text-lg text-gray-300 leading-relaxed">
+                        Our AI-powered engine analyzes job requirements and laborer skills to provide you with the perfect match. Find the right talent faster and more efficiently than ever before.
+                    </p>
+                    <button class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-700 hover:shadow-blue-500/40 transition-all transform hover:scale-105">
+                        Discover the Power of AI
+                    </button>
+                </div>
+                <div class="relative w-full h-96 flex items-center justify-center p-8 rounded-3xl bg-[#161b22] shadow-2xl">
+                    <div class="absolute inset-0 bg-no-repeat bg-center bg-contain opacity-30" style="background-image: url('https://cdn-icons-png.flaticon.com/512/3257/3257548.png');"></div>
+                    <div class="absolute -bottom-4 -left-4 w-24 h-24 bg-orange-500 rounded-full blur-3xl opacity-50"></div>
+                    <div class="absolute top-4 right-4 w-32 h-32 bg-blue-500 rounded-full blur-3xl opacity-50"></div>
+                    <div class="relative z-10 text-center text-gray-400 space-y-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 mx-auto text-white/50 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <p class="font-bold text-2xl text-white">AI-Powered Matching</p>
+                        <p class="text-sm text-gray-400">Find the perfect professional, powered by intelligence.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="py-24 bg-gradient-to-b from-[#1a202c] to-[#0d1117] relative overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="animate-pulse opacity-20 bg-gradient-to-r from-orange-500 via-blue-500 to-green-500 blur-3xl h-full w-full"></div>
+        </div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-blue-400 to-green-400 mb-6">
+                🚀 Our Premium Plans
+            </h2>
+            <p class="text-lg text-gray-300 text-center mb-16">
+                Choose the plan that's right for your business. <span class="text-green-400 font-semibold">Laborers always use ConnecTrac for free.</span>
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="group bg-[#161b22] p-8 rounded-3xl shadow-lg border border-[#30363d] hover:border-orange-500 hover:shadow-orange-500/20 transition-all duration-300 transform hover:-translate-y-2">
+                    <h3 class="text-2xl font-bold text-white mb-2 flex justify-center items-center gap-2">
+                        <span class="material-symbols-outlined text-orange-400">bolt</span> Basic
+                    </h3>
+                    <p class="text-gray-400 mb-6">For small projects and a single team.</p>
+                    <div class="text-4xl font-extrabold text-orange-500 mb-6">$29
+                        <span class="text-lg text-gray-400 font-normal">/month</span>
+                    </div>
+                    <ul class="text-left space-y-4 mb-8">
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>5 Active Job Posts</span>
+                        </li>
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>Standard Search Filters</span>
+                        </li>
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>In-app Messaging</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-orange-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-orange-600 transition-transform transform hover:scale-105">
+                        Get Started
+                    </button>
+                </div>
+                <div class="group bg-[#161b22] p-8 rounded-3xl shadow-2xl border-2 border-blue-500 hover:border-blue-400 transition-all duration-300 transform hover:-translate-y-3 scale-105">
+                    <div class="absolute -mt-10 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-md">
+                        ⭐ Most Popular
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2 flex justify-center items-center gap-2">
+                        <span class="material-symbols-outlined text-blue-400">workspace_premium</span> Pro
+                    </h3>
+                    <p class="text-gray-400 mb-6">For growing companies and multiple teams.</p>
+                    <div class="text-4xl font-extrabold text-blue-500 mb-6">$99
+                        <span class="text-lg text-gray-400 font-normal">/month</span>
+                    </div>
+                    <ul class="text-left space-y-4 mb-8">
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>Unlimited Job Posts</span>
+                        </li>
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>AI-Powered Recommendations</span>
+                        </li>
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>Project Analytics Dashboard</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-blue-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-blue-600 transition-transform transform hover:scale-110">
+                        Go Pro
+                    </button>
+                </div>
+                <div class="group bg-[#161b22] p-8 rounded-3xl shadow-lg border border-[#30363d] hover:border-green-500 hover:shadow-green-500/20 transition-all duration-300 transform hover:-translate-y-2">
+                    <h3 class="text-2xl font-bold text-white mb-2 flex justify-center items-center gap-2">
+                        <span class="material-symbols-outlined text-green-400">business</span> Enterprise
+                    </h3>
+                    <p class="text-gray-400 mb-6">For large corporations with complex needs.</p>
+                    <div class="text-4xl font-extrabold text-green-500 mb-6">Custom</div>
+                    <ul class="text-left space-y-4 mb-8">
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>Dedicated Account Manager</span>
+                        </li>
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>Custom AI Features & Integrations</span>
+                        </li>
+                        <li class="flex items-center space-x-2 text-gray-300">
+                            <span class="text-green-400">✔</span> <span>Priority Support</span>
+                        </li>
+                    </ul>
+                    <button class="w-full bg-green-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-green-600 transition-transform transform hover:scale-105">
+                        Contact Sales
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+<section class="py-28 bg-[#1a202c] relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute top-0 left-0 w-1/2 h-1/2 bg-gradient-to-br from-orange-500/20 via-pink-500/20 to-purple-500/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div class="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tr from-blue-500/20 via-green-500/20 to-teal-500/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div class="absolute top-1/2 left-1/2 w-[50rem] h-[50rem] -translate-x-1/2 -translate-y-1/2 border border-white/10 rounded-full animate-spin-slow"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <h2 class="text-5xl font-extrabold text-center text-white mb-16 tracking-tight drop-shadow-2xl">
+            💬 What Our Users Say
+        </h2>
+        <div class="marquee-container overflow-hidden">
+            <div class="marquee-content grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div class="testimonial-card bg-[#161b22]/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-[#30363d] hover:scale-[1.03] hover:shadow-orange-500/30 transition-all duration-500 text-center opacity-0">
+                    <p class="text-lg italic text-gray-300 mb-6 leading-relaxed">"ConnecTrac has revolutionized my hiring process. I can find skilled and reliable workers in a fraction of the time."</p>
+                    <div class="flex justify-center items-center space-x-4">
+                        <img src="https://i.pravatar.cc/100?img=1" alt="Jane Doe" class="w-12 h-12 rounded-full border-2 border-orange-500">
+                        <div>
+                            <p class="font-semibold text-white">Jane Doe</p>
+                            <p class="text-sm text-gray-400">Contractor</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card bg-[#161b22]/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-[#30363d] hover:scale-[1.03] hover:shadow-blue-500/30 transition-all duration-500 text-center opacity-0">
+                    <p class="text-lg italic text-gray-300 mb-6 leading-relaxed">"I used to spend days looking for work. With ConnecTrac, jobs find me! The rating system is a game-changer for my reputation."</p>
+                    <div class="flex justify-center items-center space-x-4">
+                        <img src="https://i.pravatar.cc/100?img=3" alt="John Smith" class="w-12 h-12 rounded-full border-2 border-blue-500">
+                        <div>
+                            <p class="font-semibold text-white">John Smith</p>
+                            <p class="text-sm text-gray-400">Laborer</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card bg-[#161b22]/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-[#30363d] hover:scale-[1.03] hover:shadow-green-500/30 transition-all duration-500 text-center opacity-0">
+                    <p class="text-lg italic text-gray-300 mb-6 leading-relaxed">"The platform is so intuitive and easy to use. I love the chat feature and the transparent payment system."</p>
+                    <div class="flex justify-center items-center space-x-4">
+                        <img src="https://i.pravatar.cc/100?img=5" alt="Mark Johnson" class="w-12 h-12 rounded-full border-2 border-green-500">
+                        <div>
+                            <p class="font-semibold text-white">Mark Johnson</p>
+                            <p class="text-sm text-gray-400">Contractor</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card bg-[#161b22]/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-[#30363d] hover:scale-[1.03] hover:shadow-green-500/30 transition-all duration-500 text-center opacity-0">
+                    <p class="text-lg italic text-gray-300 mb-6 leading-relaxed">"The platform is so intuitive and easy to use. I love the chat feature and the transparent payment system."</p>
+                    <div class="flex justify-center items-center space-x-4">
+                        <img src="https://i.pravatar.cc/100?img=5" alt="Mark Johnson" class="w-12 h-12 rounded-full border-2 border-green-500">
+                        <div>
+                            <p class="font-semibold text-white">Mark Johnson</p>
+                            <p class="text-sm text-gray-400">Contractor</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Marquee Effect */
+.marquee-container {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.marquee-content {
+  display: inline-flex;
+  animation: marquee 15s linear infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+</style>
+
+<!-- Final Call-to-Action Section -->
+<section class="py-28 bg-gradient-to-br from-[#0d1117] via-[#161b22] to-[#25282e] text-white text-center shadow-2xl">
+    <div class="max-w-4xl mx-auto px-6 lg:px-8 space-y-6">
+        <h2 class="text-5xl sm:text-6xl font-extrabold leading-tight
+        bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500
+        bg-clip-text text-transparent drop-shadow-[0_4px_12px_rgba(255,255,255,0.15)]
+        animate-pulse-slow">
+            Ready to Grow Your Business or Your Career?
+        </h2>
+        <p class="text-lg sm:text-xl opacity-90 max-w-3xl mx-auto
+            text-gray-200 leading-relaxed mt-4
+            animate-fade-in">
+            Join the <span class="text-pink-400 font-semibold">fastest-growing community</span>
+            of <span class="text-blue-400 font-semibold">construction professionals</span>.
+            Your next great project is just a <span class="underline decoration-pink-500">click away</span>.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6 pt-4">
+            <button class="bg-white text-blue-600 font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                Find Talent Now
+            </button>
+            <button class="bg-gray-900 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                Find Your Next Job
+            </button>
+        </div>
+    </div>
+</section>    
+
+<!-- Floating AI Chat Assistant -->
+<div class="chat-container fixed bottom-6 right-6 z-50">
+    <!-- Chat Window -->
+    <div id="chatWindow" class="hidden flex flex-col bg-[#161b22] shadow-2xl rounded-2xl w-96 h-[550px] overflow-hidden border border-[#30363d] transition-all duration-300">
+        <!-- Header -->
+        <div class="bg-[#1f242b] text-white px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <svg class="w-6 h-6 text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-.5 15h1v-1h-1v1zm0-3h1V7h-1v7z"/>
+                </svg>
+                <h3 class="font-bold text-lg">AI Assistant</h3>
+            </div>
+            <button id="closeChatBtn" class="hover:bg-[#30363d] rounded-lg p-1">
+                <svg class="w-6 h-6 text-gray-400 hover:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chatMessages" class="flex-grow p-4 overflow-y-auto text-gray-300 space-y-3">
+            <p class="text-gray-400 text-sm">👋 Hi there! How can I help you today?</p>
+        </div>
+
+        <!-- Suggested Questions -->
+        <div id="suggestions" class="p-3 flex flex-wrap gap-2 border-t border-[#30363d]">
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-4 border-t border-[#30363d] flex items-center bg-[#1f242b]">
+            <input id="chatInput" type="text" placeholder="Ask something..." class="flex-grow bg-[#30363d] rounded-xl px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500">
+            <button id="sendBtn" class="ml-2 p-2 rounded-full bg-green-500 text-white hover:bg-green-600 transition">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Floating Chat Button -->
+    <button id="chatBtn" class="chat-icon bg-green-500 hover:bg-green-600 p-4 rounded-full shadow-lg transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10-10-4.48-10-10 4.48-10 10-10zm0 18c4.41 0 8-3.59 8-8s-3.59-8-8-8-8 3.59-8 8 3.59 8 8 8zm0-13c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5z"/>
+        </svg>
+    </button>
+</div>
+
+<script>
+const chatBtn = document.getElementById("chatBtn");
+const chatWindow = document.getElementById("chatWindow");
+const closeChatBtn = document.getElementById("closeChatBtn");
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
+const suggestions = document.getElementById("suggestions");
+
+const suggestedQuestions = [
+    "What are today's job openings?",
+    "Help me apply for a job",
+    "Show my application status",
+    "Give career tips",
+    "What skills are trending?",
+    "How to improve my resume?"
+];
+
+suggestedQuestions.forEach(q => {
+    const btn = document.createElement("button");
+    btn.innerText = q;
+    btn.className = "px-3 py-1 rounded-full text-sm bg-gray-700 hover:bg-green-600 hover:text-white transition";
+    btn.addEventListener("click", () => addMessage(q, "user"));
+    suggestions.appendChild(btn);
+});
+
+chatBtn.addEventListener("click", () => chatWindow.classList.toggle("hidden"));
+closeChatBtn.addEventListener("click", () => chatWindow.classList.add("hidden"));
+
+sendBtn.addEventListener("click", () => sendMessage());
+chatInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage();
+});
+
+function addMessage(text, sender) {
+    const msg = document.createElement("div");
+    msg.className = sender === "user" ? "text-green-400 text-right" : "text-gray-300";
+    msg.textContent = text;
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    addMessage(text, "user");
+    chatInput.value = "";
+    setTimeout(() => {
+        addMessage("🤖 Here's a helpful answer for: " + text, "bot");
+    }, 600);
+}
+</script>
+
+<style>
+.chat-icon {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+
+    <!-- Footer -->
+    <footer class="relative bg-gray-900 text-gray-400 py-16 border-t border-[#30363d] overflow-hidden">
+        <div class="absolute top-0 left-1/2 w-[60rem] h-[60rem] -translate-x-1/2 -translate-y-1/2 bg-gradient-to-tr from-purple-500/10 to-pink-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute bottom-0 right-0 w-[50rem] h-[50rem] bg-gradient-to-bl from-blue-500/10 to-green-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-12">
+                <div>
+                    <h3 class="font-bold text-white text-xl mb-4">ConnecTrac</h3>
+                    <p class="text-sm text-gray-300">Connecting contractors with skilled laborers, one project at a time. Trusted by thousands of professionals.</p>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Find Jobs</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Post a Job</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Company</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Blog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Security</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Stay Updated</h4>
+                    <p class="text-sm text-gray-300 mb-4">Subscribe to our newsletter to get latest updates & job alerts.</p>
+                    <form class="flex flex-col space-y-3">
+                        <input type="email" placeholder="Your email" class="px-4 py-2 rounded-full bg-[#1f242b] border border-[#30363d] text-white focus:outline-none focus:border-blue-500">
+                        <button class="bg-blue-500 text-white font-bold py-2 rounded-full hover:bg-blue-600 transition-transform transform hover:scale-105">Subscribe</button>
+                    </form>
+                    <div class="mt-6 flex space-x-3">
+                        <a href="#" class="bg-[#1f242b] hover:bg-[#30363d] p-2 rounded-lg transition-colors flex items-center justify-center">
+                            <img src="https://img.icons8.com/ios-filled/24/ffffff/apple-app-store.png" alt="App Store">
+                        </a>
+                        <a href="#" class="bg-[#1f242b] hover:bg-[#30363d] p-2 rounded-lg transition-colors flex items-center justify-center">
+                            <img src="https://img.icons8.com/ios-filled/24/ffffff/google-play.png" alt="Google Play">
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 border-t border-[#30363d] pt-6 text-center text-sm text-gray-500">
+                <p>&copy; 2024 ConnecTrac. All rights reserved.</p>
+                <p class="mt-2">Made with ❤️ by B.Tech CSE Students</p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal-overlay">
+    <div class="modal-content">
+        <button id="closeLoginModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors duration-200">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <div class="text-center mb-6">
+            <div class="flex justify-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-orange-500" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 10h-2v2h2v-2zm0 4h-2v2h2v-2zm-6-4H6v2h2v-2zm0 4H6v2h2v-2zm8-12.5v17c0 .828.672 1.5 1.5 1.5h1.75c.828 0 1.5-.672 1.5-1.5v-17c0-.828-.672-1.5-1.5-1.5H16.5c-.828 0-1.5.672-1.5 1.5zm-8 0v17c0 .828-.672 1.5-1.5 1.5H5.25c-.828 0-1.5-.672-1.5-1.5v-17c0-.828.672-1.5 1.5-1.5h1.75c.828 0 1.5.672 1.5 1.5zM10.25 10v12c0 .828-.672 1.5-1.5 1.5h-1.75c-.828 0-1.5-.672-1.5-1.5v-12c0-.828.672-1.5 1.5-1.5h1.75c.828 0 1.5.672 1.5 1.5zM14.25 10v12c0 .828-.672 1.5-1.5 1.5h-1.75c-.828 0-1.5-.672-1.5-1.5v-12c0-.828.672-1.5 1.5-1.5h1.75c.828 0 1.5.672 1.5 1.5z"/>
+                </svg>
+            </div>
+            <h2 id="modalTitle" class="text-4xl font-extrabold text-white mb-2">Welcome Back</h2>
+            <p class="text-gray-400">Your premium construction job marketplace.</p>
+        </div>
+        
+        <!-- Role Selection Tabs -->
+        <div class="flex mb-6 text-sm font-semibold text-gray-400 rounded-xl overflow-hidden bg-[#1f242b] p-1">
+            <button id="contractorTab" class="flex-1 py-3 px-4 rounded-xl transition duration-200 focus:outline-none bg-[#30363d] text-white">I am a Contractor</button>
+            <button id="laborerTab" class="flex-1 py-3 px-4 rounded-xl transition duration-200 focus:outline-none hover:bg-[#30363d]">I am a Laborer</button>
+        </div>
+        
+        <!-- Login & Sign-up Forms -->
+        <form id="authForm" class="space-y-6">
+            <div id="signupFields" class="space-y-6 hidden">
+                <div>
+                    <label for="fullName" class="block text-sm font-medium text-gray-400">Full Name</label>
+                    <input type="text" id="fullName" class="mt-1 block w-full px-4 py-3 bg-[#1f242b] border-2 border-[#30363d] rounded-lg shadow-sm text-white focus:outline-none focus:border-orange-500 transition duration-150" placeholder="Enter your full name">
+                </div>
+            </div>
+            
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-400">Email Address</label>
+                <input type="email" id="email" class="mt-1 block w-full px-4 py-3 bg-[#1f242b] border-2 border-[#30363d] rounded-lg shadow-sm text-white focus:outline-none focus:border-orange-500 transition duration-150" placeholder="Enter your email" required>
+            </div>
+            <div class="relative">
+                <label for="password" class="block text-sm font-medium text-gray-400">Password</label>
+                <input type="password" id="password" class="mt-1 block w-full px-4 py-3 bg-[#1f242b] border-2 border-[#30363d] rounded-lg shadow-sm text-white focus:outline-none focus:border-orange-500 pr-12 transition duration-150" placeholder="••••••••" required>
+                <button type="button" id="togglePassword" class="show-password-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path id="eyeIcon" d="M12 4.5c-4.42 0-8.24 1.7-11 4.5 2.76 2.8 6.58 4.5 11 4.5s8.24-1.7 11-4.5c-2.76-2.8-6.58-4.5-11-4.5zm0 8.5c-2.485 0-4.5-2.015-4.5-4.5S9.515 3.5 12 3.5s4.5 2.015 4.5 4.5-2.015 4.5-4.5 4.5z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="flex items-center space-x-2 cursor-pointer">
+                <div class="w-6 h-6 rounded-md border-2 border-[#30363d] flex-shrink-0 flex items-center justify-center">
+                    <svg id="captchaCheck" class="w-4 h-4 hidden text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <span class="text-sm text-gray-400">I'm not a robot</span>
+            </div>
+
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-500 mb-4">Or continue with</p>
+                <button type="button" class="w-full py-3 px-4 rounded-lg bg-[#1f242b] text-white font-semibold transition-colors duration-200 hover:bg-[#30363d] border border-[#30363d]">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12.24 10.28v2.44h4.4c-.18 1.4-1.12 3.4-4.4 3.4-3.14 0-5.7-2.58-5.7-5.7s2.56-5.7 5.7-5.7c1.78 0 2.92.74 3.6 1.4L18 5.7c-1.12-1.04-2.58-1.7-4.26-1.7-4.14 0-7.5 3.36-7.5 7.5s3.36 7.5 7.5 7.5c4.54 0 7.2-3.16 7.2-7.38 0-.5-.06-1.16-.14-1.72h-7.06z"/>
+                    </svg>
+                    Sign in with Google
+                </button>
+            </div>
+
+            <button type="submit" id="authSubmitBtn" class="w-full py-3 px-4 rounded-lg text-white font-bold text-lg transition-transform duration-200 transform hover:scale-105 shadow-lg bg-orange-500 hover:bg-orange-600">Log In</button>
+            
+            <p id="toggleAuth" class="text-center text-sm text-gray-400 cursor-pointer hover:text-white transition-colors duration-200">New user? <span class="font-bold text-orange-500">Create an account</span></p>
+        </form>
+    </div>
+</div>
+
+<!-- Main Contractor Dashboard Content -->
+<div id="contractorDashboard" class="hidden min-h-screen flex flex-col">
+    <header class="bg-[#161b22] shadow-xl sticky top-0 z-40">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="text-3xl font-extrabold text-orange-500">ConnecTrac</div>
+            <div class="flex items-center space-x-4">
+                <span id="userIdDisplay" class="px-3 py-1 rounded-full text-sm font-semibold text-gray-900 bg-gray-300"></span>
+                <span id="contractorUserBadge" class="px-3 py-1 rounded-full text-sm font-semibold text-gray-900 bg-orange-500">Contractor</span>
+                <button id="logoutBtn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 hover:bg-red-700">Log Out</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div id="contractorDashboardContent" class="space-y-8">
+            <div class="p-8 rounded-2xl bg-[#161b22] shadow-xl space-y-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div>
+                        <h1 id="contractorWelcome" class="text-4xl font-extrabold text-white"></h1>
+                        <span class="mt-2 inline-block bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold">Contractor Dashboard</span>
+                    </div>
+                </div>
+                <div class="bg-[#0d1117] rounded-xl shadow-lg p-6 border border-[#30363d]">
+                    <h2 class="text-2xl font-semibold text-white mb-4">Post a New Job</h2>
+                    <form id="postJobForm" class="space-y-4">
+                        <div>
+                            <label for="jobTitle" class="block text-sm font-medium text-gray-400">Job Title</label>
+                            <input type="text" id="jobTitle" class="mt-1 block w-full px-4 py-2 bg-[#1f242b] border border-[#30363d] rounded-lg text-white" required>
+                        </div>
+                        <div>
+                            <label for="jobDescription" class="block text-sm font-medium text-gray-400">Description</label>
+                            <textarea id="jobDescription" rows="4" class="mt-1 block w-full px-4 py-2 bg-[#1f242b] border border-[#30363d] rounded-lg text-white" required></textarea>
+                        </div>
+                        <div>
+                            <label for="jobPay" class="block text-sm font-medium text-gray-400">Pay ($)</label>
+                            <input type="number" id="jobPay" class="mt-1 block w-full px-4 py-2 bg-[#1f242b] border border-[#30363d] rounded-lg text-white" required>
+                        </div>
+                        <button type="submit" class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600">Post Job</button>
+                    </form>
+                </div>
+                <div class="bg-[#0d1117] rounded-xl shadow-lg p-6 border border-[#30363d]">
+                    <h2 class="text-2xl font-semibold text-white mb-4">My Posted Jobs</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-gray-300">
+                            <thead class="border-b border-[#30363d]">
+                                <tr>
+                                    <th class="px-4 py-2">Job Title</th>
+                                    <th class="px-4 py-2">Description</th>
+                                    <th class="px-4 py-2">Pay</th>
+                                    <th class="px-4 py-2">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myJobsTableBody" class="divide-y divide-[#30363d]">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="bg-[#161b22] text-gray-400 py-10 mt-12 border-t border-[#30363d]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>&copy; 2024 ConnecTrac. All rights reserved.</p>
+            <p class="mt-2">Made with ❤️ by B.Tech CSE Students</p>
+        </div>
+    </footer>
+</div>
+
+<!-- Main Laborer Dashboard Content -->
+<div id="laborerDashboard" class="hidden min-h-screen flex flex-col">
+    <header class="bg-[#161b22] shadow-xl sticky top-0 z-40">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="text-3xl font-extrabold text-orange-500">ConnecTrac</div>
+            <div class="flex items-center space-x-4">
+                <span id="laborerUserIdDisplay" class="px-3 py-1 rounded-full text-sm font-semibold text-gray-900 bg-gray-300"></span>
+                <span id="laborerUserBadge" class="px-3 py-1 rounded-full text-sm font-semibold text-gray-900 bg-blue-500">Laborer</span>
+                <button id="laborerLogoutBtn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 hover:bg-red-700">Log Out</button>
+            </div>
+        </nav>
+    </header>
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div id="laborerDashboardContent" class="space-y-8">
+            <div class="p-8 rounded-2xl bg-[#161b22] shadow-xl space-y-8">
+                <h1 id="laborerWelcome" class="text-4xl font-extrabold text-white"></h1>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="md:col-span-1 bg-[#0d1117] rounded-xl shadow-lg p-6 space-y-4 border border-[#30363d]">
+                        <div class="flex flex-col items-center">
+                            <div id="profileImage" class="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center text-5xl font-bold text-white"></div>
+                            <h2 id="laborerProfileName" class="mt-4 text-2xl font-bold text-white"></h2>
+                            <p id="laborerProfileEmail" class="text-sm text-gray-400"></p>
+                            <div class="mt-4 text-center">
+                                <p class="text-lg font-bold text-yellow-400">4.8 / 5.0</p>
+                                <p class="text-sm text-gray-500">Based on 12 reviews</p>
+                            </div>
+                            <button id="editProfileBtn" class="mt-4 w-full py-2 px-4 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600">Edit Profile</button>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 bg-[#0d1117] rounded-xl shadow-lg p-6 space-y-4 border border-[#30363d]">
+                        <h2 class="text-xl font-semibold text-white">Location-Based Job Search</h2>
+                        <div class="w-full h-80 bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
+                            <p>Interactive Map powered by Google Maps API</p>
+                        </div>
+                        
+                        <h3 class="text-lg font-semibold text-white mt-4">Available Jobs Near You</h3>
+                        <div id="availableJobsList" class="space-y-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="bg-[#161b22] text-gray-400 py-10 mt-12 border-t border-[#30363d]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+            <p>&copy; 2024 ConnecTrac. All rights reserved.</p>
+            <p class="mt-2">Made with ❤️ by B.Tech CSE Students</p>
+        </div>
+    </footer>
+</div>
+
+<!-- Message Box UI -->
+<div id="messageBox" class="rounded-xl shadow-2xl p-6 hidden">
+    <div id="messageContent"></div>
+    <button id="closeMessageBtn" class="mt-4 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">OK</button>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="hidden">
+    <div class="spinner mb-4"></div>
+    <p id="loadingText" class="text-white text-lg">Initializing...</p>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, addDoc, setDoc, onSnapshot, collection, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    let app, auth, db;
+    let userProfile = null;
+
+    const homepageContent = document.getElementById('homepageContent');
+    const loginModal = document.getElementById('loginModal');
+    const contractorDashboard = document.getElementById('contractorDashboard');
+    const laborerDashboard = document.getElementById('laborerDashboard');
+    const messageBox = document.getElementById('messageBox');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loginBtnNav = document.getElementById('loginBtnNav');
+    const findJobsBtn = document.getElementById('findJobsBtn');
+    const postJobBtn = document.getElementById('postJobBtn');
+    const closeMessageBtn = document.getElementById('closeMessageBtn');
+    const authForm = document.getElementById('authForm');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const laborerLogoutBtn = document.getElementById('laborerLogoutBtn');
+    const contractorTab = document.getElementById('contractorTab');
+    const laborerTab = document.getElementById('laborerTab');
+    const modalTitle = document.getElementById('modalTitle');
+    const signupFields = document.getElementById('signupFields');
+    const toggleAuth = document.getElementById('toggleAuth');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordBtn = document.getElementById('togglePassword');
+    const userIdDisplay = document.getElementById('userIdDisplay');
+    const laborerUserIdDisplay = document.getElementById('laborerUserIdDisplay');
+    const contractorWelcome = document.getElementById('contractorWelcome');
+    const laborerWelcome = document.getElementById('laborerWelcome');
+    const postJobForm = document.getElementById('postJobForm');
+    const myJobsTableBody = document.getElementById('myJobsTableBody');
+    const availableJobsList = document.getElementById('availableJobsList');
+    const laborerProfileName = document.getElementById('laborerProfileName');
+    const laborerProfileEmail = document.getElementById('laborerProfileEmail');
+    const profileImage = document.getElementById('profileImage');
+    const closeLoginModalBtn = document.getElementById('closeLoginModalBtn');
+
+    let currentUserType = 'contractor';
+    let isSigningUp = false;
+
+    function showLoading(text = "Loading...") {
+        loadingOverlay.classList.remove('hidden');
+        document.getElementById('loadingText').textContent = text;
+    }
+
+    function hideLoading() {
+        loadingOverlay.classList.add('hidden');
+    }
+
+    function showMessage(message) {
+        document.getElementById('messageContent').textContent = message;
+        messageBox.style.display = 'block';
+    }
+
+    closeMessageBtn.addEventListener('click', () => {
+        messageBox.style.display = 'none';
+    });
+    
+    function showDashboard(role) {
+        homepageContent.classList.add('hidden');
+        loginModal.classList.remove('open');
+        if (role === 'contractor') {
+            contractorDashboard.classList.remove('hidden');
+            laborerDashboard.classList.add('hidden');
+        } else if (role === 'laborer') {
+            laborerDashboard.classList.remove('hidden');
+            contractorDashboard.classList.add('hidden');
+        }
+    }
+
+    function showHomepage() {
+        homepageContent.classList.remove('hidden');
+        contractorDashboard.classList.add('hidden');
+        laborerDashboard.classList.add('hidden');
+    }
+
+    function updateTabStyles() {
+        if (contractorTab && laborerTab) {
+            if (currentUserType === 'contractor') {
+                contractorTab.classList.remove('bg-[#1f242b]', 'text-gray-400', 'hover:bg-[#30363d]');
+                contractorTab.classList.add('bg-[#30363d]', 'text-white');
+                laborerTab.classList.remove('bg-[#30363d]', 'text-white');
+                laborerTab.classList.add('bg-[#1f242b]', 'text-gray-400', 'hover:bg-[#30363d]');
+            } else {
+                laborerTab.classList.remove('bg-[#1f242b]', 'text-gray-400', 'hover:bg-[#30363d]');
+                laborerTab.classList.add('bg-[#30363d]', 'text-white');
+                contractorTab.classList.remove('bg-[#30363d]', 'text-white');
+                contractorTab.classList.add('bg-[#1f242b]', 'text-gray-400', 'hover:bg-[#30363d]');
+            }
+        }
+    }
+
+    function openLoginModal(role = 'contractor') {
+        loginModal.classList.add('open');
+        currentUserType = role;
+        updateTabStyles();
+    }
+
+    function closeLoginModal() {
+        loginModal.classList.remove('open');
+    }
+    
+    async function firebaseInitAndAuth() {
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+            } else {
+                await signInAnonymously(auth);
+            }
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const userId = user.uid;
+                    const profileDocRef = doc(db, `artifacts/${appId}/users/${userId}/profile/details`);
+                    
+                    showLoading("Loading user profile...");
+                    const docSnap = await getDoc(profileDocRef);
+                    
+                    if (docSnap.exists()) {
+                        userProfile = docSnap.data();
+                        
+                        if (userProfile.email && userProfile.email.includes('@connec-trac-anonymous.com')) {
+                            showHomepage();
+                            openLoginModal();
+                            hideLoading();
+                            return;
+                        }
+                        if (userProfile.role === 'contractor') {
+                            renderContractorDashboard(userProfile);
+                        } else {
+                            renderLaborerDashboard(userProfile);
+                        }
+                    } else {
+                        showHomepage();
+                        openLoginModal();
+                    }
+                } else {
+                    userProfile = null;
+                    showHomepage();
+                    openLoginModal();
+                }
+                hideLoading();
+            });
+
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            showMessage("Failed to connect to the server. Please try again later.");
+            hideLoading();
+        }
+    }
+
+    async function renderContractorDashboard(profile) {
+        showDashboard('contractor');
+        contractorWelcome.textContent = `Welcome, ${profile.fullName || profile.email}!`;
+        userIdDisplay.textContent = `User ID: ${auth.currentUser.uid}`;
+        
+        const jobsCollectionRef = collection(db, `artifacts/${appId}/users/${auth.currentUser.uid}/postedJobs`);
+        const q = query(jobsCollectionRef);
+        
+        onSnapshot(q, (snapshot) => {
+            myJobsTableBody.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const job = doc.data();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-2">${job.title}</td>
+                    <td class="px-4 py-2">${job.description.substring(0, 50)}...</td>
+                    <td class="px-4 py-2">$${job.pay}</td>
+                    <td class="px-4 py-2">
+                        <button data-id="${doc.id}" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 delete-btn">Delete</button>
+                    </td>
+                `;
+                myJobsTableBody.appendChild(tr);
+            });
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    showMessage("Simulating C++ backend delete. This feature is not implemented.");
+                });
+            });
+        });
+    }
+
+    async function renderLaborerDashboard(profile) {
+        showDashboard('laborer');
+        laborerWelcome.textContent = `Welcome, ${profile.fullName || profile.email}!`;
+        laborerUserIdDisplay.textContent = `User ID: ${auth.currentUser.uid}`;
+        profileImage.textContent = profile.fullName ? profile.fullName.charAt(0) : 'L';
+        laborerProfileName.textContent = profile.fullName || 'New User';
+        laborerProfileEmail.textContent = profile.email;
+
+        const publicJobsRef = collection(db, `artifacts/${appId}/public/data/jobs`);
+        onSnapshot(publicJobsRef, (snapshot) => {
+            availableJobsList.innerHTML = '';
+            snapshot.forEach((doc) => {
+                const job = doc.data();
+                const div = document.createElement('div');
+                div.className = 'bg-[#1f242b] p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center border border-[#30363d]';
+                div.innerHTML = `
+                    <div>
+                        <h3 class="text-lg font-bold">${job.title}</h3>
+                        <p class="text-sm text-gray-400">Posted by: ${job.postedBy}</p>
+                        <p class="text-sm text-gray-400">Description: ${job.description.substring(0, 100)}...</p>
+                        <p class="text-sm font-bold text-green-400 mt-1">Pay: $${job.pay}</p>
+                    </div>
+                    <button class="mt-4 sm:mt-0 py-2 px-4 rounded-lg bg-blue-500 text-white font-semibold transition-colors duration-200 hover:bg-blue-600">Apply</button>
+                `;
+                availableJobsList.appendChild(div);
+            });
+        });
+    }
+
+    if (loginBtnNav) loginBtnNav.addEventListener('click', () => openLoginModal('contractor'));
+    if (findJobsBtn) findJobsBtn.addEventListener('click', () => openLoginModal('laborer'));
+    if (postJobBtn) postJobBtn.addEventListener('click', () => openLoginModal('contractor'));
+    document.querySelector('.bg-white.text-blue-600').addEventListener('click', () => openLoginModal('contractor'));
+    document.querySelector('.bg-gray-900.text-white').addEventListener('click', () => openLoginModal('laborer'));
+    if (closeLoginModalBtn) closeLoginModalBtn.addEventListener('click', () => closeLoginModal());
+
+    if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const fullName = document.getElementById('fullName').value;
+            if (isSigningUp && !fullName) {
+                showMessage("Full Name is required for signup.");
+                return;
+            }
+
+            try {
+                showLoading(isSigningUp ? "Creating account..." : "Logging in...");
+                
+                if (isSigningUp) {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    const profile = {
+                        fullName: fullName,
+                        email: email,
+                        role: currentUserType,
+                        createdAt: new Date(),
+                    };
+                    
+                    const profileRef = doc(db, `artifacts/${appId}/users/${user.uid}/profile/details`);
+                    await setDoc(profileRef, profile);
+                    showMessage("Account created successfully! You are now logged in.");
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showMessage("Login successful!");
+                }
+            } catch (error) {
+                console.error("Authentication failed:", error);
+                if (error.code === 'auth/email-already-in-use') {
+                    showMessage("This email is already in use. Try logging in.");
+                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    showMessage("Invalid email or password.");
+                } else {
+                    showMessage("An authentication error occurred. Please try again.");
+                }
+            } finally {
+                hideLoading();
+            }
+        });
+    }
+
+    if (logoutBtn) logoutBtn.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            showMessage("Logged out successfully.");
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
+    });
+
+    if (laborerLogoutBtn) laborerLogoutBtn.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            showMessage("Logged out successfully.");
+        } catch (error) {
+            console.error("Logout failed:", error);
+        }
+    });
+
+    if (contractorTab) contractorTab.addEventListener('click', () => {
+        currentUserType = 'contractor';
+        updateTabStyles();
+    });
+
+    if (laborerTab) laborerTab.addEventListener('click', () => {
+        currentUserType = 'laborer';
+        updateTabStyles();
+    });
+    
+    if (toggleAuth) toggleAuth.addEventListener('click', () => {
+        isSigningUp = !isSigningUp;
+        if (isSigningUp) {
+            modalTitle.textContent = 'Create an Account';
+            authSubmitBtn.textContent = 'Sign Up';
+            if (signupFields) signupFields.classList.remove('hidden');
+            toggleAuth.innerHTML = 'Already a member? <span class="font-bold text-orange-500">Log In</span>';
+        } else {
+            modalTitle.textContent = 'Welcome Back';
+            authSubmitBtn.textContent = 'Log In';
+            if (signupFields) signupFields.classList.add('hidden');
+            toggleAuth.innerHTML = 'New user? <span class="font-bold text-orange-500">Create an account</span>';
+        }
+    });
+    
+    if (postJobForm) {
+        postJobForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('jobTitle').value;
+            const description = document.getElementById('jobDescription').value;
+            const pay = parseFloat(document.getElementById('jobPay').value);
+            
+            if (!auth.currentUser || !userProfile) {
+                showMessage("You must be logged in to post a job.");
+                return;
+            }
+
+            try {
+                showLoading("Posting job...");
+                await addDoc(collection(db, `artifacts/${appId}/public/data/jobs`), {
+                    title: title,
+                    description: description,
+                    pay: pay,
+                    postedBy: userProfile.fullName || userProfile.email,
+                    posterId: auth.currentUser.uid,
+                    createdAt: new Date(),
+                });
+                showMessage("Job posted successfully!");
+                postJobForm.reset();
+            } catch (error) {
+                console.error("Error posting job: ", error);
+                showMessage("Failed to post job. Please try again.");
+            } finally {
+                hideLoading();
+            }
+        });
+    }
+
+    if (togglePasswordBtn) togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+    });
+
+    const carouselSlides = document.querySelectorAll('.hero-slide');
+    let currentSlide = 0;
+    function showNextSlide() {
+        if (carouselSlides.length > 0) {
+            carouselSlides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % carouselSlides.length;
+            carouselSlides[currentSlide].classList.add('active');
+        }
+    }
+    
+    function animateMetrics() {
+        const metrics = [
+            { id: 'metric1', end: 50234, text: (val) => `${val.toLocaleString()}+` },
+            { id: 'metric2', end: 2500000, text: (val) => `$${(val / 1000000).toFixed(1)}M+` },
+            { id: 'metric3', end: 10450, text: (val) => `${val.toLocaleString()}+` },
+            { id: 'metric4', end: 4.8, decimals: 1, text: (val) => `${val.toFixed(1)}/5.0` }
+        ];
+
+        metrics.forEach(metric => {
+            const element = document.getElementById(metric.id);
+            if (!element) return;
+
+            let start = 0;
+            let duration = 2000;
+            let step = (metric.end - start) / (duration / 16);
+            let current = start;
+            let animationFrame;
+
+            const update = () => {
+                if (current < metric.end) {
+                    current += step;
+                    element.textContent = metric.text(Math.min(current, metric.end));
+                    animationFrame = requestAnimationFrame(update);
+                } else {
+                    element.textContent = metric.text(metric.end);
+                }
+            };
+            
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        cancelAnimationFrame(animationFrame);
+                        current = start;
+                        update();
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            observer.observe(element);
+        });
+    }
+
+    const testimonialCards = document.querySelectorAll('.testimonial-card');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-fade-up');
+                entry.target.classList.remove('opacity-0');
+            }
+        });
+    }, { threshold: 0.2 });
+    testimonialCards.forEach(card => observer.observe(card));
+
+    window.addEventListener("scroll", () => {
+        const navbar = document.getElementById("mainNavbar");
+        if (window.scrollY > 50) {
+            navbar.classList.add("navbar-shrink");
+        } else {
+            navbar.classList.remove("navbar-shrink");
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        firebaseInitAndAuth();
+        if (carouselSlides.length > 0) {
+            setInterval(showNextSlide, 5000);
+        }
+        animateMetrics();
+    });
+</script>
+</body>
+</html>
